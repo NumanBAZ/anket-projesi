@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Anket Sonuçları (Admin)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f1f5f9; color: #333; }
+        tr:hover { background-color: #f8fafc; }
+        
+        .stats-box { display: flex; gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: #e0e7ff; padding: 15px; border-radius: 8px; flex: 1; text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 2em; color: #4f46e5; }
+        .stat-card p { margin: 5px 0 0; color: #555; }
+
+        #logoutBtn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            Anket Raporu
+            <button id="logoutBtn">Çıkış Yap</button>
+        </h1>
+
+        <div class="stats-box">
+            <div class="stat-card">
+                <h3 id="total-count">0</h3>
+                <p>Toplam Katılım</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="average-score">0.0</h3>
+                <p>Ortalama Puan</p>
+            </div>
+        </div>
+
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>İsim</th>
+                    <th>Puan</th>
+                    <th>Yorum</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQkKvjiAYN40_M7M7p300oKwEH-vDEYgg",
+            authDomain: "anket-01.firebaseapp.com",
+            projectId: "anket-01",
+            storageBucket: "anket-01.firebasestorage.app",
+            messagingSenderId: "772593475294",
+            appId: "1:772593475294:web:70ea0ae2506f6a531dac4f",
+            measurementId: "G-MPYHRKKPB9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 1. GÜVENLİK KONTROLÜ (Giriş yapmamışsa login'e at)
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            } else {
+                fetchData(); // Giriş yapmışsa verileri çek
+            }
+        });
+
+        // 2. Çıkış Yap Butonu
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            });
+        });
+
+        // 3. Verileri Çekme ve Tabloya Basma
+        async function fetchData() {
+            const q = query(collection(db, "anket-sonuclari"), orderBy("tarih", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            let totalScore = 0;
+            let count = 0;
+            const tbody = document.querySelector("#results-table tbody");
+            tbody.innerHTML = ""; // Temizle
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                count++;
+                totalScore += parseInt(data.puan);
+
+                // Tarihi okunabilir formata çevir
+                const date = data.tarih ? new Date(data.tarih.seconds * 1000).toLocaleString('tr-TR') : "-";
+
+                const row = `
+                    <tr>
+                        <td>${date}</td>
+                        <td><strong>${data.isim}</strong></td>
+                        <td>${data.puan} ⭐</td>
+                        <td>${data.yorum}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            // İstatistikleri Güncelle
+            document.getElementById('total-count').innerText = count;
+            if (count > 0) {
+                document.getElementById('average-score').innerText = (totalScore / count).toFixed(1);
+            }
+        }
+    </script>
+</body>
+</html>
