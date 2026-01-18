@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Anket Soruları</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; }
+        select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        button { width: 100%; padding: 14px; background-color: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3 id="welcomeMsg"></h3>
+        <p>Lütfen soruları cevaplayınız:</p>
+        
+        <label>Sizce eğitim sistemimiz nasıl?</label>
+        <select id="puan">
+            <option value="5">Mükemmel</option>
+            <option value="4">İyi</option>
+            <option value="3">Orta</option>
+            <option value="2">Kötü</option>
+            <option value="1">Çok Kötü</option>
+        </select>
+
+        <label>Önerileriniz:</label>
+        <textarea id="yorum" rows="4"></textarea>
+
+        <button id="bitirBtn">Anketi Tamamla</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { /* AYNI CONFIG BURAYA GELECEK */ 
+            apiKey: "AIzaSyAQkKvjiAYN40_M7M7p300oKwEH-vDEYgg",
+            authDomain: "anket-01.firebaseapp.com",
+            projectId: "anket-01",
+            storageBucket: "anket-01.firebasestorage.app",
+            messagingSenderId: "772593475294",
+            appId: "1:772593475294:web:70ea0ae2506f6a531dac4f"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const ad = localStorage.getItem("katilimciAd") || "Misafir";
+        document.getElementById('welcomeMsg').innerText = "Merhaba " + ad;
+
+        document.getElementById('bitirBtn').addEventListener('click', async () => {
+            const puan = document.getElementById('puan').value;
+            const yorum = document.getElementById('yorum').value;
+
+            try {
+                await addDoc(collection(db, "anket-sonuclari"), {
+                    isim: ad,
+                    puan: puan,
+                    yorum: yorum,
+                    tarih: new Date()
+                });
+                alert("Anketiniz iletildi!");
+                window.location.href = "index.html"; // Veya teşekkür sayfası
+            } catch (e) { alert("Hata!"); }
+        });
+    </script>
+</body>
+</html>
