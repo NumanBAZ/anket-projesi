@@ -1,0 +1,51 @@
+<div class="container">
+    <h2>Anket Formu</h2>
+    <input type="text" id="isim" placeholder="Adınız (Opsiyonel)">
+    <select id="cevap">
+        <option value="Begendim">Beğendim</option>
+        <option value="Gelistirilmeli">Geliştirilmeli</option>
+    </select>
+    <button id="gonderBtn">Gönder</button>
+</div>
+
+<script type="module">
+  // Firebase SDK'larını içe aktarıyoruz
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // !!! BURAYA 1. ADIMDA SANA VERİLEN KODLARI YAPIŞTIRACAKSIN !!!
+  const firebaseConfig = {
+    apiKey: "AIzaSyD...",
+    authDomain: "anket-projesi.firebaseapp.com",
+    projectId: "anket-projesi",
+    storageBucket: "anket-projesi.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  // Firebase'i başlat
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Butona tıklanınca veriyi kaydet
+  document.getElementById('gonderBtn').addEventListener('click', async () => {
+    
+    const isimDegeri = document.getElementById('isim').value;
+    const cevapDegeri = document.getElementById('cevap').value;
+
+    try {
+      // 'anket-sonuclari' adında bir koleksiyona veriyi ekler
+      const docRef = await addDoc(collection(db, "anket-sonuclari"), {
+        isim: isimDegeri,
+        cevap: cevapDegeri,
+        tarih: new Date()
+      });
+      
+      alert("Teşekkürler! Cevabınız kaydedildi ID: " + docRef.id);
+      
+    } catch (e) {
+      console.error("Hata oluştu: ", e);
+      alert("Bir hata oldu, konsola bakabilirsin.");
+    }
+  });
+</script>
